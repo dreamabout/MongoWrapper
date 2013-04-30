@@ -34,8 +34,8 @@ class RepositoryTest extends \PHPUnit_Framework_TestCase
 
         $this->query = Phake::mock("Dreamabout\\Mongo\\Query\\Query");
 
-        Phake::when($this->emptyQuery)->getQuery()->thenReturn(array("field.subfield" => "hello"));
-        Phake::when($this->emptyQuery)->getFields()->thenReturn(array("_id" => true, "field" => true));
+        Phake::when($this->query)->getQuery()->thenReturn(array("field.subfield" => "hello"));
+        Phake::when($this->query)->getFields()->thenReturn(array("_id" => true, "field" => true));
 
         $this->factory = Phake::mock("Dreamabout\\Mongo\\Document\\DocumentFactoryInterface");
         $this->mongoCollection = Phake::mock("MongoCollection");
@@ -46,12 +46,16 @@ class RepositoryTest extends \PHPUnit_Framework_TestCase
         $this->mongoCursor = Phake::mock("MongoCursor");
 
         Phake::when($this->mongoCollection)->find(Phake::anyParameters())->thenReturn($this->mongoCursor);
+        Phake::when($this->mongoCollection)->findOne(array("field.subfield" => "hello"), array("field" => true, "_id" => true))
+            ->thenReturn(array("_id" => new \MongoId(str_repeat("0", 24)), "field" => array("subfield" => "hello")));
 
+        Phake::when($this->factory)->build(new \MongoId(str_repeat("0", 24)), array("_id" => new \MongoId(str_repeat("0", 24)), "field" => array("subfield" => "hello")))
+            ->thenReturn(Phake::mock("Dreamabout\\Mongo\\Document\\DocumentInterface"));
 
         $this->repository = new ConcreteRepository($this->connection, $this->factory);
     }
 
-    public function testFind()
+    public function testEmptyFind()
     {
         $res = $this->repository->find($this->emptyQuery);
         Phake::verify($this->emptyQuery)->getQuery();
@@ -62,6 +66,26 @@ class RepositoryTest extends \PHPUnit_Framework_TestCase
         Phake::verify($this->emptyQuery, Phake::never())->getSkip();
 
         $this->assertInstanceOf("\\Dreamabout\\Mongo\\Cursor", $res);
+    }
+
+    public function testEmptyFindOne()
+    {
+        $res = $this->repository->findOne($this->emptyQuery);
+        Phake::verify($this->emptyQuery)->getQuery();
+        Phake::verify($this->emptyQuery)->getFields();
+        Phake::verify($this->factory, Phake::never())->build(Phake::anyParameters());
+        $this->assertNull($res, "null is the result of no query");
+    }
+
+    public function testNonEmptyFindOne()
+    {
+        $res = $this->repository->findOne($this->query);
+        Phake::verify($this->query)->getQuery();
+        Phake::verify($this->query)->getFields();
+        Phake::verify($this->factory)->build(new \MongoId(str_repeat("0", 24)), array("_id" => new \MongoId(str_repeat("0", 24)), "field" => array("subfield" => "hello")));
+
+        $this->assertInstanceOf("\\Dreamabout\\Mongo\\Document\\DocumentInterface", $res);
+
     }
 
 }

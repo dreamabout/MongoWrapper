@@ -36,7 +36,24 @@ abstract class Repository
     public function find(Query $query)
     {
         $cursor = $this->getCollection()->find($query->getQuery(), $query->getFields());
-        $cursor = $this->createCursor($cursor);
+        $cursor = $this->createCursor($cursor, $query);
+
+        return $cursor;
+    }
+
+    public function findOne(Query $query)
+    {
+        $data = $this->getCollection()->findOne($query->getQuery(), $query->getFields());
+        if (isset($data["_id"])) {
+            return $this->factory->build($data["_id"], $data);
+        }
+
+        return null;
+    }
+
+    private function createCursor(\MongoCursor $cursor, Query $query)
+    {
+        $cursor = new Cursor($cursor, $this->factory, $this);
 
         if ($query->has("sort")) {
             $cursor->sort($query->getSort());
@@ -49,11 +66,6 @@ abstract class Repository
         }
 
         return $cursor;
-    }
-
-    private function createCursor(\MongoCursor $cursor)
-    {
-        return new Cursor($cursor, $this->factory, $this);
     }
 
     /**
