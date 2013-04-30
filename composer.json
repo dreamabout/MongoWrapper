@@ -1,0 +1,16 @@
+{
+    "autoload": {
+        "psr-0": {"Dreamabout": "src"}
+    },
+    "name": "dreamabout/mongo_wrapper",
+    "description": "A wrapper for populating objects with data from Mongo",
+    "authors": [
+        {
+            "name": "Thomas Faurbye Nielsen",
+            "email": "archanium@gmail.com"
+        }
+    ],
+    "require": {
+
+    }
+}

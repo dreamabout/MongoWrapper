@@ -1,0 +1,12 @@
+<phpunit bootstrap="bootstrap.php" backupGlobals="false" colors="false" syntaxCheck="false"
+         stopOnError="false"
+         stopOnFailure="false"
+        >
+
+    <testsuites>
+        <testsuite name="Everything">
+            <directory>.</directory>
+        </testsuite>
+    </testsuites>
+
+</phpunit>
